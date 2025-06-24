@@ -1,0 +1,169 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <title>Job Portal</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+
+  <style>
+    body {
+      font-family: 'Segoe UI', sans-serif;
+      margin: 0;
+      background: linear-gradient(to bottom right, #e0f7fa, #ffffff);
+      min-height: 100vh;
+    }
+
+    .overlay {
+      padding: 40px 20px;
+    }
+
+    h2 {
+      text-align: center;
+      font-size: 2.5rem;
+      color: #1e3a8a;
+      margin-bottom: 30px;
+    }
+
+    .search-box {
+      display: flex;
+      justify-content: center;
+      gap: 12px;
+      margin-bottom: 40px;
+      flex-wrap: wrap;
+    }
+
+    .search-box input[type="text"] {
+      padding: 12px 18px;
+      font-size: 16px;
+      width: 300px;
+      border: 2px solid #2563eb;
+      border-radius: 8px;
+      outline: none;
+    }
+
+    .search-box button {
+      padding: 12px 20px;
+      background: #2563eb;
+      color: white;
+      font-size: 16px;
+      border: none;
+      border-radius: 8px;
+      cursor: pointer;
+      transition: background 0.3s ease;
+    }
+
+    .search-box button:hover {
+      background: #1e40af;
+    }
+
+    .job-card {
+      background: white;
+      border-left: 5px solid #4e73df;
+      margin: 20px auto;
+      padding: 20px;
+      border-radius: 10px;
+      width: 90%;
+      max-width: 600px;
+      box-shadow: 0 4px 12px rgba(0, 0, 0, 0.08);
+      transition: transform 0.3s ease, box-shadow 0.3s ease, opacity 0.5s ease;
+      opacity: 0;
+      transform: translateY(30px);
+      animation: fadeInUp 0.6s ease forwards;
+    }
+
+    .job-card:hover {
+      transform: scale(1.02);
+      box-shadow: 0 8px 18px rgba(0, 0, 0, 0.1);
+    }
+
+    .job-card h3 {
+      margin: 0 0 10px;
+      font-size: 1.2rem;
+      color: #333;
+    }
+
+    .job-card p {
+      margin: 0 0 8px;
+      color: #555;
+    }
+
+    .job-card a {
+      color: #1e3a8a;
+      font-weight: bold;
+      text-decoration: none;
+    }
+
+    #job-listings {
+      text-align: center;
+    }
+
+    @keyframes fadeInUp {
+      to {
+        opacity: 1;
+        transform: translateY(0);
+      }
+    }
+  </style>
+</head>
+<body>
+  <div class="overlay">
+    <h2>Search Jobs</h2>
+
+    <div class="search-box">
+      <input type="text" id="job-input" placeholder="e.g. frontend developer" />
+      <button onclick="searchJobs()">Search</button>
+    </div>
+
+    <div id="job-listings"></div>
+  </div>
+
+  <script>
+    const RAPIDAPI_KEY = "592ff64544msh123796b5a80518ap19ade5jsncfe82fc94dd5";
+    const jobListings = document.getElementById("job-listings");
+
+    async function searchJobs() {
+      const query = document.getElementById("job-input").value.trim();
+      if (!query) {
+        alert("Please enter a job role.");
+        return;
+      }
+
+      jobListings.innerHTML = "<p>Loading jobs...</p>";
+
+      try {
+        const response = await fetch(
+          `https://jsearch.p.rapidapi.com/search?query=${encodeURIComponent(query)}&location=India&page=1&num_pages=1`,
+          {
+            method: "GET",
+            headers: {
+              "X-RapidAPI-Key": RAPIDAPI_KEY,
+              "X-RapidAPI-Host": "jsearch.p.rapidapi.com"
+            }
+          }
+        );
+
+        const data = await response.json();
+        const jobs = data.data || [];
+
+        if (jobs.length === 0) {
+          jobListings.innerHTML = "<p>No jobs found for that role.</p>";
+          return;
+        }
+
+        // Apply fade-in animation delay for each card
+        jobListings.innerHTML = jobs.map((job, i) => `
+          <div class="job-card" style="animation-delay: ${i * 0.1}s">
+            <h3>${job.job_title}</h3>
+            <p><strong>Company:</strong> ${job.employer_name}</p>
+            <p><strong>Location:</strong> ${job.job_city || "India"}</p>
+            <a href="${job.job_apply_link}" target="_blank">Apply Now</a>
+          </div>
+        `).join("");
+      } catch (error) {
+        console.error("Error:", error);
+        jobListings.innerHTML = "<p>Error loading jobs. Please try again later.</p>";
+      }
+    }
+  </script>
+</body>
+</html>
